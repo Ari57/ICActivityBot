@@ -53,9 +53,9 @@ def CheckLoa():
 
     for row in rows:
         name = row[6]
-        loa = row[17]
+        loa = row[18]
         if name != "" and name != "Name" and name != "dont delete":
-            if loa != "ROA" and loa != "LOA":
+            if loa == "ROA" or loa == "LOA":
                 names.append(name)
 
     return names
@@ -78,12 +78,11 @@ async def shutdown(ctx):
 async def check_activity():
     sheet = GetGoogleSheet()
     NameColumn = sheet.col_values(7)
-    DiscordIDColumn = sheet.col_values(9) # TODO discord id is missing atm
-    print(DiscordIDColumn)
-    LastSeenColumn = sheet.col_values(13)
+    DiscordIDColumn = sheet.col_values(11)
+    LastSeenColumn = sheet.col_values(14)
     CurrentDate = datetime.today()
 
-    NonLoaNames = CheckLoa()
+    LoaNames = CheckLoa()
 
     OverFiveDays = []
     FiveDays = []
@@ -93,7 +92,7 @@ async def check_activity():
     for name, DiscordId, lastSeen in zip(NameColumn, DiscordIDColumn, LastSeenColumn):
         if name != "" and name != "Name" and name != "dont delete":
             if lastSeen != "" and lastSeen != "Last Seen":
-                if name not in NonLoaNames:
+                if name in LoaNames:
                     continue
 
                 try:
@@ -121,13 +120,13 @@ async def check_activity():
     if FiveDays:
         output.append(f"0 days: {' '.join(FiveDays)}")
     if OverFiveDays:
-        output.append(f"Inactive: {' '.join(OverFiveDays)}")
+        output.append(f"Removed Troopers: {' '.join(OverFiveDays)}")
 
     if output:
         response = "\n".join(output)
         channel = discord.utils.get(bot.get_all_channels(), name=CHANNEL_NAME)
         if channel:
-            message = f"\n{response}\n\nPlease participate in an event or training to update your activity, if there are any problems DM a member of the IC Officer team\n"
+            message = f"\n{response}\n\n:warning: If you've been tagged, you're running low on activity days. Jump into an event or training session soon to avoid being marked as inactive and potentially demoted and put on passive.\n"
             await channel.send(message)
         else:
             logging.error(f"Unable to find channel: {CHANNEL_NAME}")
