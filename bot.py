@@ -84,10 +84,10 @@ async def check_activity():
 
     LoaNames = CheckLoa()
 
-    OverFiveDays = []
-    FiveDays = []
-    FourDays = []
-    ThreeDays = []
+    LessZeroDays = []
+    ZeroDays = []
+    OneDay = []
+    TwoDays = []
 
     for name, DiscordId, lastSeen in zip(NameColumn, DiscordIDColumn, LastSeenColumn):
         if name != "" and name != "Name" and name != "dont delete":
@@ -98,29 +98,30 @@ async def check_activity():
                 try:
                     LastSeen = datetime.strptime(lastSeen, "%d/%m/%Y")
                     DaysSince = (CurrentDate - LastSeen).days
+                    Inactivity = 6 - DaysSince # same formula as spreadsheet, don't know why it's like this
 
-                    if DaysSince > 5:
-                        OverFiveDays.append(f"<@{DiscordId}>")
-                    elif DaysSince == 5:
-                        FiveDays.append(f"<@{DiscordId}>")
-                    elif DaysSince == 4:
-                        FourDays.append(f"<@{DiscordId}>")
-                    elif DaysSince == 3:
-                        ThreeDays.append(f"<@{DiscordId}>")
+                    if Inactivity < 0:
+                        LessZeroDays.append(f"<@{DiscordId}>")
+                    elif Inactivity == 0:
+                        ZeroDays.append(f"<@{DiscordId}>")
+                    elif Inactivity == 1:
+                        OneDay.append(f"<@{DiscordId}>")
+                    elif Inactivity == 2:
+                        TwoDays.append(f"<@{DiscordId}>")
 
                 except Exception as e:
                     logging.error(f"Unable to convert DaysSince value for {name}: {e}")
 
     output = []
 
-    if ThreeDays:
-        output.append(f"2 days: {' '.join(ThreeDays)}")
-    if FourDays:
-        output.append(f"1 day: {' '.join(FourDays)}")
-    if FiveDays:
-        output.append(f"0 days: {' '.join(FiveDays)}")
-    if OverFiveDays:
-        output.append(f"Removed Troopers: {' '.join(OverFiveDays)}")
+    if TwoDays:
+        output.append(f"2 days: {' '.join(TwoDays)}")
+    if OneDay:
+        output.append(f"1 day: {' '.join(OneDay)}")
+    if ZeroDays:
+        output.append(f"0 days: {' '.join(ZeroDays)}")
+    if LessZeroDays:
+        output.append(f"Removed Troopers: {' '.join(LessZeroDays)}")
 
     if output:
         response = "\n".join(output)
